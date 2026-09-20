@@ -15,13 +15,13 @@ export class WeaponsController {
     return this.weaponsService.findOne(uuid);
   }
 
-  @Get('skins')
-  findAllSkins() {
-    return this.weaponsService.findAllSkins();
-  }
+  // @Get('skins')
+  // findAllSkins() {
+  //   return this.weaponsService.findAllSkins();
+  // }
 
-  @Get('skins/:uuid')
-  findOneSkin(@Param('uuid') uuid: string) {
-    return this.weaponsService.findOneSkin(uuid);
-  }
+  // @Get('skins/:uuid')
+  // findOneSkin(@Param('uuid') uuid: string) {
+  //   return this.weaponsService.findOneSkin(uuid);
+  // }
 }
