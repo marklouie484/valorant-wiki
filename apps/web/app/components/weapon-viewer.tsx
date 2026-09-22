@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import WeaponSkinCarousel from "./weapon-skin-carousel";
 import type { WeaponDetail } from "./weapons-browser";
 
@@ -21,13 +20,10 @@ export default function WeaponViewer({ weapon }: { weapon: WeaponDetail }) {
 
       <div className="absolute left-1/2 top-1/2 z-0 h-[45vh] w-[80vw] max-w-3xl -translate-x-1/2 -translate-y-1/2">
         {displayImage ? (
-          <Image
+          <img
             src={displayImage}
             alt={displayName}
-            fill
-            sizes="800px"
-            className="object-contain"
-            priority
+            className="absolute inset-0 h-full w-full object-contain"
           />
         ) : null}
       </div>

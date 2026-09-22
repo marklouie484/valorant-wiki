@@ -25,18 +25,44 @@ interface RawAgent {
   }[];
 }
 
+type SkillDemoData = Record<string, Record<string, string>>;
+
 @Injectable()
 export class AgentsService {
   private readonly baseUrl: string;
+  private readonly supplementalUrl: string;
 
   constructor(
     private readonly http: HttpService,
     private readonly config: ConfigService,
   ) {
     this.baseUrl = this.config.get<string>('VALORANT_API_BASE_URL')!;
+    this.supplementalUrl = this.config.get<string>('MAPS_SUPPLEMENTAL_URL')!;
   }
 
-  private mapAgent(agent: RawAgent) {
+  private normalizeName(name: string) {
+    return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  private async getSkillDemoData(): Promise<SkillDemoData> {
+    try {
+      const { data } = await firstValueFrom(
+        this.http.get<{ data: SkillDemoData }>(`${this.supplementalUrl}/agents_skills.json`),
+      );
+      return data.data;
+    } catch {
+      return {};
+    }
+  }
+
+  private mapAgent(agent: RawAgent, skillDemos?: Record<string, string>) {
+    const normalizedDemos = new Map<string, string>();
+    if (skillDemos) {
+      for (const [abilityName, url] of Object.entries(skillDemos)) {
+        normalizedDemos.set(this.normalizeName(abilityName), url);
+      }
+    }
+
     return {
       uuid: agent.uuid,
       displayName: agent.displayName,
@@ -59,6 +85,9 @@ export class AgentsService {
           displayName: ability.displayName,
           description: ability.description,
           displayIcon: ability.displayIcon,
+          videoUrl:
+            normalizedDemos.get(this.normalizeName(ability.displayName)) ??
+            null,
         })),
     };
   }
@@ -73,9 +102,14 @@ export class AgentsService {
   }
 
   async findOne(uuid: string) {
-    const { data } = await firstValueFrom(
-      this.http.get<{ data: RawAgent }>(`${this.baseUrl}/agents/${uuid}`),
-    );
-    return this.mapAgent(data.data);
+    const [{ data }, skillDemoData] = await Promise.all([
+      firstValueFrom(
+        this.http.get<{ data: RawAgent }>(`${this.baseUrl}/agents/${uuid}`),
+      ),
+      this.getSkillDemoData(),
+    ]);
+
+    const skillDemos = skillDemoData[data.data.displayName];
+    return this.mapAgent(data.data, skillDemos);
   }
 }

@@ -1,5 +1,12 @@
+import Image from "next/image";
 import agentsHeroPic from "../../public/images/agents-hero.webp";
 import AgentsBrowser, { type Agent } from "../components/agents-browser";
+
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Agents",
+};
 
 async function getAgents(): Promise<Agent[]> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agents`, {
@@ -18,11 +25,17 @@ export default async function AgentsPage() {
 
   return (
     <main className="bg-secondary">
-      <section
-        className="flex min-h-screen w-full items-center bg-secondary bg-cover bg-center px-8 md:px-16 lg:px-24"
-        style={{ backgroundImage: `url(${agentsHeroPic.src})` }}
-      >
-        <div className="mx-auto grid w-full max-w-7xl items-center gap-12 md:grid-cols-2 md:gap-20">
+      <section className="relative flex min-h-screen w-full items-center px-4 md:px-16 lg:px-24">
+        <Image
+          src={agentsHeroPic}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 md:grid-cols-2 md:gap-20">
           <div className="max-w-xl">
             <p className="font-(family-name:--font-tungsten) text-8xl font-bold uppercase text-neutral">
               Meet the agents
@@ -40,7 +53,7 @@ export default async function AgentsPage() {
         </div>
       </section>
 
-      <section className="flex min-h-screen w-full items-start bg-secondary bg-cover bg-center px-8 pb-20 pt-20 md:px-16 lg:px-24">
+      <section className="flex min-h-screen w-full items-start bg-secondary px-8 pb-20 pt-20 md:px-16 lg:px-24">
         <div className="mx-auto w-full max-w-7xl">
           <AgentsBrowser agents={agents} />
         </div>

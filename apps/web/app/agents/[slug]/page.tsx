@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { slugify } from "../../lib/slug";
 import type { Agent } from "../../components/agents-browser";
+import AgentAbilities from "../../components/agent-abilities";
 
 async function getAgents(): Promise<Agent[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agents`, {
@@ -15,6 +16,18 @@ async function getAgents(): Promise<Agent[]> {
     return res.json();
 }
 
+async function getAgentDetail(uuid: string): Promise<Agent> {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/agents/${uuid}`, {
+        cache: "no-store",
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch agent");
+    }
+
+    return res.json();
+}
+
 export default async function AgentProfilePage({
     params,
 }: {
@@ -22,11 +35,13 @@ export default async function AgentProfilePage({
 }) {
     const { slug } = await params;
     const agents = await getAgents();
-    const agent = agents.find((item) => slugify(item.displayName) === slug);
+    const match = agents.find((item) => slugify(item.displayName) === slug);
 
-    if (!agent) {
+    if (!match) {
         notFound();
     }
+
+    const agent = await getAgentDetail(match.uuid);
 
     const [color1, color2] = agent.backgroundGradientColors
         ? [agent.backgroundGradientColors[2], agent.backgroundGradientColors[0]]
@@ -38,8 +53,10 @@ export default async function AgentProfilePage({
             : undefined;
 
     return (
-        <main className="min-h-screen"
-            style={dynamicGradient ? { background: dynamicGradient } : undefined}>
+        <main
+            className="min-h-screen"
+            style={dynamicGradient ? { background: dynamicGradient } : undefined}
+        >
             <section
                 className="relative flex min-h-screen w-full items-end overflow-hidden px-8 pb-20 md:px-16 lg:px-24"
                 style={
@@ -83,43 +100,15 @@ export default async function AgentProfilePage({
             </section>
 
             {agent.abilities && agent.abilities.length > 0 && (
-                <section className="px-8 py-20 md:px-16 lg:px-24"
-                style={dynamicGradient ? { background: dynamicGradient } : undefined}>
+                <section
+                    className="px-8 py-20 md:px-16 lg:px-24"
+                    style={dynamicGradient ? { background: dynamicGradient } : undefined}
+                >
                     <div className="mx-auto max-w-7xl">
                         <h2 className="mb-10 font-(family-name:--font-tungsten) text-5xl uppercase text-neutral">
                             Special Abilities
                         </h2>
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                            {agent.abilities.map((ability) => (
-                                <div
-                                    key={ability.slot}
-                                    className="rounded-lg border border-secondary/10 bg-secondary/20 p-5"
-                                >
-                                    <div className="mb-4 flex items-center gap-3">
-                                        {ability.displayIcon && (
-                                            <div className="relative h-10 w-10 shrink-0">
-                                                <Image
-                                                    src={ability.displayIcon}
-                                                    alt={ability.displayName}
-                                                    fill
-                                                    sizes="40px"
-                                                    className="object-contain"
-                                                />
-                                            </div>
-                                        )}
-                                        <span className="font-(family-name:--font-mark-pro) text-xs font-bold uppercase tracking-wider text-primary">
-                                            {ability.slot}
-                                        </span>
-                                    </div>
-                                    <h3 className="font-(family-name:--font-tungsten) text-2xl uppercase text-neutral">
-                                        {ability.displayName}
-                                    </h3>
-                                    <p className="mt-2 font-(family-name:--font-mark-pro) text-sm leading-relaxed text-neutral/70">
-                                        {ability.description}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
+                        <AgentAbilities abilities={agent.abilities} />
                     </div>
                 </section>
             )}

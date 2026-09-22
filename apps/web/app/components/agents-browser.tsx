@@ -30,6 +30,7 @@ export type Agent = {
     displayName: string;
     description: string;
     displayIcon: string | null;
+    videoUrl: string | null;
   }[];
 };
 
